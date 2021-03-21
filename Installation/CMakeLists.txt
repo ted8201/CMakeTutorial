@@ -7,12 +7,21 @@ project(Installation VERSION 1.0)
 
 # 如果想生成动态库，使用下面的语句
 add_library(mymath SHARED mymath.cc)
-target_include_directories(mymath PRIVATE  ${CMAKE_SOURCE_DIR}/include)
+# target_include_directories(mymath PRIVATE  ${CMAKE_SOURCE_DIR}/include)
+# 这句做了修改，参考 https://stackoverflow.com/questions/25676277/cmake-target-include-directories-prints-an-error-when-i-try-to-add-the-source
+target_include_directories(mymath PUBLIC  
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>  
+    $<INSTALL_INTERFACE:include>  # <prefix>/include/mylib
+)
 set_target_properties(mymath PROPERTIES PUBLIC_HEADER ${CMAKE_SOURCE_DIR}/include/mymath.h)
 
 # 生成可执行文件
 add_executable(mymathapp mymathApp.cc)
-target_link_libraries(mymathapp mymath)
+# build 路径与install路径应分别设置
+target_include_directories(mymathapp INTERFACE  
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>  
+    $<INSTALL_INTERFACE:include>  # <prefix>/include/mylib
+)
 target_include_directories(mymathapp PRIVATE ${CMAKE_SOURCE_DIR}/include)
 
 # 改变安装路径可以使用下面的语句，Unix: "/usr/local", Windows: "c:/Program Files/${PROJECT_NAME}" 为默认值，所有的DESTINATION均以此目录为根目录
